@@ -1,0 +1,291 @@
+@import "tailwindcss";
+
+/*
+  İlker Neslioğlu — portfolio design tokens.
+  Light→dark scroll journey. OKLCH throughout, neutrals tinted, never pure
+  #000/#fff. See DESIGN.md for the rationale behind every value here.
+*/
+
+:root {
+  /* Canvas — interpolated paper→ink by --p (scroll progress, 0..1) */
+  --paper: oklch(0.985 0.004 85);
+  --paper-sunk: oklch(0.955 0.006 80);
+  --ink-deep: oklch(0.19 0.012 265);
+  --ink-deepest: oklch(0.145 0.014 265);
+
+  /* Text */
+  --text-ink: oklch(0.24 0.012 270);
+  --muted-ink: oklch(0.5 0.01 270);
+  --text-bone: oklch(0.94 0.004 85);
+  /* Translucent near-white, not a fixed grey: stays high-contrast on mid-luminance
+     zone colors (grey, bright blue) where a grey muted would wash out. */
+  --muted-bone: oklch(0.95 0.004 85 / 0.74);
+
+  /* Rationed accent — warm terracotta, legible on light and dark */
+  --accent: oklch(0.7 0.13 55);
+  --accent-soft: oklch(0.7 0.13 55 / 0.14);
+
+  /* Per-project signature hues (used sparingly) */
+  --hue-cups: oklch(0.74 0.14 25);
+  --hue-mega: oklch(0.72 0.15 145);
+  --hue-captain: oklch(0.7 0.11 230);
+  --hue-stick: oklch(0.76 0.12 90);
+
+  /* Hairline that reads on light and dark zones */
+  --line-ink: oklch(0.24 0.012 270 / 0.12);
+  --line-bone: oklch(0.94 0.004 85 / 0.14);
+
+  /*
+    One continuous canvas color, interpolated by scroll (set on <html> by the
+    BackgroundJourney controller). --fg is the readable text for the CURRENT
+    canvas color (ink on light stretches, bone on dark), also interpolated.
+    Muted text and hairlines derive from --fg + the live canvas so contrast holds
+    on every color. Components reference only these, never raw ink/bone.
+  */
+  --canvas: var(--paper);
+  --fg: var(--text-ink);
+  --fg-muted: color-mix(in oklab, var(--fg), var(--canvas) 42%);
+  --fg-line: color-mix(in oklab, var(--fg), transparent 86%);
+
+  /* Fixed chrome (dock bar, rail) tracks the canvas beneath it. */
+  --chrome-fg: var(--fg);
+  --chrome-bg: color-mix(in oklab, var(--canvas), transparent 26%);
+
+  /* Motion */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Fonts (wired from next/font in layout.tsx) */
+  --font-display: var(--font-bricolage), "Times New Roman", serif;
+  --font-body: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-sunk: var(--paper-sunk);
+  --color-ink-deep: var(--ink-deep);
+  --color-ink-deepest: var(--ink-deepest);
+  --color-text-ink: var(--text-ink);
+  --color-muted-ink: var(--muted-ink);
+  --color-text-bone: var(--text-bone);
+  --color-muted-bone: var(--muted-bone);
+  --color-accent: var(--accent);
+
+  --font-display: var(--font-bricolage);
+  --font-body: var(--font-hanken);
+  --font-mono: var(--font-geist-mono);
+}
+
+/*
+  The whole page background IS the interpolated canvas color. The BackgroundJourney
+  controller updates --canvas (and --fg) by scroll position on <html>, so the page
+  glides continuously through the project colors as you scroll. Sections are
+  transparent and ride on top of it.
+*/
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  background: var(--canvas);
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--fg);
+  background: transparent;
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text-ink);
+}
+
+/* Keyboard focus — single consistent ring across the journey */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Fluid type scale (~1.3 ratio), capped for mobile→desktop */
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  font-size: clamp(2.75rem, 9vw, 6.5rem);
+}
+.t-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  font-size: clamp(2rem, 6vw, 4rem);
+}
+.t-heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  font-size: clamp(1.3rem, 3vw, 1.85rem);
+}
+.t-lead {
+  font-size: clamp(1.12rem, 2.4vw, 1.45rem);
+  line-height: 1.55;
+  letter-spacing: -0.005em;
+}
+.t-body {
+  font-size: clamp(1rem, 1.6vw, 1.075rem);
+  line-height: 1.62;
+}
+.t-mono {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  font-feature-settings: "tnum" 1;
+}
+.t-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* Prose measure */
+.measure {
+  max-width: 64ch;
+}
+
+/*
+  Scroll reveal. Elements start shifted + transparent; [data-revealed] (set by
+  IntersectionObserver) settles them. Stagger via --i. Transform/opacity only.
+*/
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(var(--reveal-shift, 24px));
+  transition:
+    opacity 0.7s var(--ease-out-quart),
+    transform 0.8s var(--ease-out-expo);
+  transition-delay: calc(var(--i, 0) * 65ms);
+  will-change: opacity, transform;
+}
+[data-reveal][data-revealed] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero accent rule: draws in left→right on load */
+.draw-rule {
+  height: 2px;
+  width: clamp(72px, 12vw, 132px);
+  background: var(--accent);
+  transform-origin: left center;
+  animation: draw-in 0.9s var(--ease-out-expo) 0.35s both;
+}
+@keyframes draw-in {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Scroll cue: a hairline that gently extends and retracts */
+.scroll-cue {
+  animation: cue 2.6s var(--ease-out-quart) infinite;
+}
+@keyframes cue {
+  0%,
+  100% {
+    transform: scaleX(0.4);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Economy diagram (Aye Captain!) — draws in on view */
+.economy-svg .node-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+}
+.economy-svg .core-label {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 500;
+}
+.economy-svg .core-sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.economy-svg .flow {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.7s var(--ease-out-quart);
+}
+.economy-svg .node,
+.economy-svg .core {
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.5s var(--ease-out-quart),
+    transform 0.6s var(--ease-out-expo);
+}
+.economy-svg .core {
+  transition-delay: 0ms;
+}
+.economy-svg[data-on] .flow {
+  stroke-dashoffset: 0;
+}
+.economy-svg[data-on] .node,
+.economy-svg[data-on] .core {
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .economy-svg .flow {
+    stroke-dashoffset: 0;
+    transition: none;
+  }
+  .economy-svg .node,
+  .economy-svg .core {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.3s ease;
+  }
+  .draw-rule {
+    animation: none;
+  }
+  .scroll-cue {
+    animation: none;
+    transform: scaleX(1);
+  }
+  [data-reveal] {
+    transition:
+      opacity 0.4s ease,
+      transform 0.4s ease;
+    transform: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
